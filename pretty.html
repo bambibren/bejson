@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <textarea name="" id="text" cols="30" rows="10"></textarea>
+    <button onclick="pretty()">pretty</button>
+    <script>
+        const text = document.querySelector('#text');
+
+        function pretty() {
+            text.value = format(getJSONObj(text.value), '\t');
+        }
+
+        const format = (function formatJSON() {
+            let escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
+            let escFunc = function (m) { return escMap[m] || '\\u' + (m.charCodeAt(0) + 0x10000).toString(16).substr(1); };
+            let escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
+
+            return function (JSONObj, space, time = 1) {
+                if (JSONObj === null) {
+                    return 'null';
+                } else if (typeof JSONObj === 'number') {
+                    return isFinite(JSONObj) ? JSONObj.toString() : 'null';
+                } else if (typeof JSONObj === 'boolean') {
+                    return JSONObj.toString();
+                } else if (typeof JSONObj === 'object') {
+                    if (typeof JSONObj.toJSON === 'function') {
+                        return format(JSONObj.toJSON(), space, time++);
+                    } else if (JSONObj.constructor === Array) {
+                        var res = '[';
+                        for (var i = 0; i < JSONObj.length; i++)
+                            res += (i ? ', ' : '') + format(JSONObj[i], space, time++);
+                        return res + ']';
+                    } else if (JSONObj.constructor === Object) {
+                        let wordIndent = '\n' + space.repeat(time);
+                        let wordWrap = '\n' + space.repeat(time - 1);
+                        time++;
+                        var tmp = [];
+                        for (var k in JSONObj) {
+                            if (JSONObj.hasOwnProperty(k)) {
+                                tmp.push(format(k, space, time) + ': ' + format(JSONObj[k], space, time));
+                            }
+                        }
+                        return '{' + wordIndent + tmp.join(',' + wordIndent) + wordWrap +'}';
+                    }
+                } else {
+                    return '"' + JSONObj.toString().replace(escRE, escFunc) + '"';
+                }
+
+            }
+        })()
+
+        /*
+            param1 JSONstr 未格式化的JSON字符串
+            return 去【类空格字符】后的JSON字符串
+        */
+        function getJSONObj(JSONstr) {
+            let JSONObj;
+            try {
+                JSONstr = JSONstr.replace(/'/g, '"');
+                JSONObj = JSON.parse(JSONstr)
+            } catch (error) {
+                // 转换失败错误提示
+                console.error('json数据格式有误...');
+                console.error(error);
+                JSONObj = null;
+            }
+            return JSONObj;
+        }
+    </script>
+</body>
+</html>

@@ -54,7 +54,7 @@
             console.log(`匹配到了来路不明的${exec[0]}`)
             }
         }
-        return JSONstr;
+        return JSONstr === null ? 'Invalid value' : JSONstr;
     }
 
     function JSONTrim(JSONstr) {

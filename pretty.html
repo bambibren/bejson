@@ -16,6 +16,7 @@
         }
 
         const format = (function formatJSON() {
+            // 用于转化字符串中的空字符和特殊字符
             let escMap = {'"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f', '\n': '\\n', '\r': '\\r', '\t': '\\t'};
             let escFunc = function (m) { return escMap[m] || '\\u' + (m.charCodeAt(0) + 0x10000).toString(16).substr(1); };
             let escRE = /[\\"\u0000-\u001F\u2028\u2029]/g;
@@ -29,11 +30,11 @@
                     return JSONObj.toString();
                 } else if (typeof JSONObj === 'object') {
                     if (typeof JSONObj.toJSON === 'function') {
-                        return format(JSONObj.toJSON(), space, time++);
+                        return format(JSONObj.toJSON(), space, time);
                     } else if (JSONObj.constructor === Array) {
                         var res = '[';
                         for (var i = 0; i < JSONObj.length; i++)
-                            res += (i ? ', ' : '') + format(JSONObj[i], space, time++);
+                            res += (i ? ', ' : '') + format(JSONObj[i], space, time);
                         return res + ']';
                     } else if (JSONObj.constructor === Object) {
                         let wordIndent = '\n' + space.repeat(time);
@@ -56,7 +57,7 @@
 
         /*
             param1 JSONstr 未格式化的JSON字符串
-            return 去【类空格字符】后的JSON字符串
+            return 转化后的JSON对象
         */
         function getJSONObj(JSONstr) {
             let JSONObj;
@@ -67,7 +68,7 @@
                 // 转换失败错误提示
                 console.error('json数据格式有误...');
                 console.error(error);
-                JSONObj = null;
+                JSONObj = 'Invalid value';
             }
             return JSONObj;
         }
